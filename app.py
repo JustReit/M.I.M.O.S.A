@@ -178,7 +178,7 @@ def item(id):
             return jsonify({'error': 'Invalid action'}), 400
 
 
-def send_request(target_ip, data, timeout=0.4):
+def send_request(target_ip, data, timeout=0.1):
     url = f"http://{target_ip}/json/state"
 
     try:

@@ -44,17 +44,11 @@
                 Apply Settings
             </button>
         </li>
-        <li>
-            <button id="light-mode" class="bg-blue-500 hover:bg-blue-700 common-button mr-4">
-                Light mode
-            </button>
-        </li>
-
-
     </ul>
 </div>
 
-<button  id="menu-button" class="menu-button" onclick="toggleSideMenu()"><span class="material-symbols-outlined">settings</span></button>
+<button  id="menu-button" class="menu-button" onclick="toggleSideMenu()"><span class="material-symbols-outlined text-3xl">settings</span></button>
+<button  id="theme-button" class="theme-button" onclick="toggleLightMode()"><span class="material-symbols-outlined text-3xl" id="theme-icon">light_mode</span></button>
 <div class="container mx-auto mt-8">
     <div class="container mx-auto mt-8">
         <div class="absolut top-10 z-10 w-full  py-1">
@@ -62,12 +56,12 @@
         </div>
 
     <div class="flex flex-col items-center my-5 mx-auto">
-        <div class="relative">
+        <div class="flex w-60">
         <button type="button" id="btn-esp"
-                class="common-button bg-blue-500 hover:bg-blue-700">Add ESP</button>
+                class="flex-1 common-button bg-blue-500 hover:bg-blue-700 mr-2">Add ESP</button>
 
         <button type="button" id="btn-add"
-                class="common-button bg-blue-500 hover:bg-blue-700">Add Item</button>
+                class="flex-1 common-button bg-blue-500 hover:bg-blue-700">Add Item</button>
         </div>
         <div id="form-container" class="hidden w-full md:w-2/3 lg:w-1/2">
             <form id="add-form" class="shadow-md rounded px-8 pt-6 pb-8 mb-4">
@@ -86,7 +80,7 @@
                 </div>
                 <div class="mb-4 flex flex-wrap">
                 <div class="w-full md:w-2/4 md:pr-2">
-                    <label for="image" class="block text-gray-200 font-bold mb-2">Image:</label>
+                    <label for="image">Image:</label>
                     <input type="url" id="image" name="image" required
                            placeholder="Enter the image URL"
                            class="form-input">
@@ -105,7 +99,7 @@
                 </div>
                 <div class="w-full md:w-2/4 md:pl-2">
                     <label for="generate_pos" >Generate Positions:</label>
-                    <button type="button" id="generate_pos" class="flex-1 bg-blue-500 hover:bg-blue-700 common-button w-full">Select LEDS</button>
+                    <button type="button" id="generate_pos" onclick="togglegrid()" class="flex-1 bg-blue-500 hover:bg-blue-700 common-button w-full">Select LEDS</button>
                 </div>
                 </div>
                 <div id="select_led_container" class="container mx-auto hidden">
@@ -123,10 +117,12 @@
                         <div class="grid-container" id="gridContainer"></div>
                     </div>
                 </div>
-                <div class="container mb-4 text-gray-200">
+                <div class="container mb-4">
                     <label for="tag-input" >Tags:</label>
-                    <input  id="tag-input" name="tag-input" placeholder="Add Tags" class="form-input placeholder:text-gray-500 mb-4" />
-                    <i class="material-symbols-outlined icon" id="add_form_tag_toggle">filter_list</i>
+                    <div class="tag-input-container">
+                        <input id="tag-input" name="tag-input" placeholder="Add Tags" class="form-input mb-4 flex-1" />
+                        <i class="material-symbols-outlined form-icon" id="add_form_tag_toggle">filter_list</i>
+                    </div>
 
                     <div class="tag-container" id="add_form_tag_container">
                         <div class="tag-container hidden" id="add_form_tag_container_overflow"></div>
