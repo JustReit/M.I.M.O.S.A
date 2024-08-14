@@ -1,42 +1,13 @@
 var myOffcanvas = document.getElementById('offcanvasSettings')
-const timeoutRange = document.getElementById('settings_timeout');
-const brightnessRange = document.getElementById('settings_brightness');
 const scrollToTop = document.querySelectorAll('.scroll-to-top');
 
 
-
-// Function to update brightness output
-function updateBrightnessOutput() {
-    const brightnessSlider = document.getElementById("settings_brightness");
-    document.getElementById('brightness-display').textContent = brightnessSlider.value + "%";
-    addSettings(event);
-}
-
-function updateTimeoutOutput() {
-    const timeoutSlider = document.getElementById("settings_timeout");
-    if (timeoutSlider.value < 1) {
-        document.getElementById('timeout-display').textContent = "Off";
-    } else {
-        const minutes = Math.floor(timeoutSlider.value / 60);
-        const seconds = timeoutSlider.value % 60;
-
-        document.getElementById('timeout-display').textContent = minutes + "m " + seconds + "s";
-    }
-    addSettings(event);
-}
-
 function addSettings(event) {
-    //event.preventDefault();
-    const brightness = document.getElementById("settings_brightness").value;
-    const timeout = document.getElementById("settings_timeout").value;
-    const colors = [
-        document.getElementById("color-standby").value.toString(),
-        document.getElementById("color-locate").value.toString()
-    ];
+
     if (lightMode === undefined){
         lightMode = "light"
     }
-    const settings = {brightness, timeout, lightMode, colors};
+    const settings = {lightMode};
     // Save the settings in the database using fetch
     fetch("/api/settings", {
         method: "POST",
@@ -57,14 +28,6 @@ function loadSettings() {
     })
         .then((response) => response.json())
         .then((settings) => {
-            // Update input fields with the retrieved settings
-            document.getElementById("settings_brightness").value = settings.brightness;
-            document.getElementById("settings_timeout").value = settings.timeout;
-            // Ensure colors is an array and update the color inputs
-
-            const colors = Array.isArray(settings.colors) ? settings.colors : JSON.parse(settings.colors);
-            document.getElementById("color-standby").value = colors[0];
-            document.getElementById("color-locate").value = colors[1];
             lightMode = settings.lightMode;
         })
         .catch((error) => console.error(error));
@@ -82,16 +45,6 @@ window.addEventListener('DOMContentLoaded', () => {
         })
 })
 
-// Function to send a GET request based on the button pressed
-function sendLedRequest(state) {
-    const url = `/led/${state}`; // Replace with the actual endpoint
-    fetch(url)
-        .then((response) => {
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-        });
-}
 
 
 scrollToTop.forEach(function (scrollToTop) {
@@ -105,65 +58,6 @@ scrollToTop.forEach(function (scrollToTop) {
     });
 });
 
-// colorPicker.js
-
-function updateColor(inputId, spanId) {
-    const input = document.getElementById(inputId);
-    const span = document.getElementById(spanId);
-    const color = input.value;
-    console.log(color);
-    span.textContent = color;
-    input.style.color = color;
-    addSettings();
-}
-
-document.getElementById("color-standby").addEventListener('change', function () {
-    updateColor('color-standby', 'picked-color-standby')
-});
-document.getElementById("color-locate").addEventListener('change', function () {
-    updateColor('color-locate', 'picked-color-locate')
-});
-
-
-
-document.getElementById("on-button").addEventListener('click', () => {
-    sendLedRequest('on')
-});
-document.getElementById("off-button").addEventListener('click', () => {
-    sendLedRequest('off')
-});
-document.getElementById("party-button").addEventListener('click', () => {
-    sendLedRequest('party')
-});
-
-brightnessRange.addEventListener('input', function () {
-    document.getElementById('brightness-display').textContent = this.value + "%";
-});
-brightnessRange.addEventListener('change', function () {
-    updateBrightnessOutput();
-});
-
-
-timeoutRange.addEventListener('input', function () {
-    if (this.value < 1) {
-        document.getElementById('timeout-display').textContent = "Off";
-    } else {
-        var minutes = Math.floor(this.value / 60);
-        var seconds = this.value % 60;
-
-        var timeString = minutes + "m " + seconds + "s";
-        document.getElementById('timeout-display').textContent = timeString;
-    }
-});
-timeoutRange.addEventListener('change', function () {
-    updateTimeoutOutput();
-});
-
-myOffcanvas.addEventListener('show.bs.offcanvas', function () {
-    updateBrightnessOutput();
-    updateTimeoutOutput();
-    populateEspTable();
-})
 
 let currentnventurItemIndex = 0; // Keep track of the current item index
 document.getElementById('cancel-inventur-button').addEventListener('click', function(){
@@ -223,11 +117,6 @@ document.getElementById("inventur").addEventListener("click", function () {
         document.getElementById("item_image").value = currentItem.image;
         document.getElementById("item_quantity").value = currentItem.quantity;
 
-        // Set LED positions for editing
-        localStorage.setItem('led_positions', JSON.stringify(currentItem.position))
-        clickedCells = JSON.parse(localStorage.getItem('led_positions'));
-        localStorage.setItem('edit_led_positions', JSON.stringify(currentItem.position))
-        localStorage.setItem('edit_image_path', JSON.stringify(currentItem.image))
 
         // Set item tags for editing
         if (currentItem.tags) {
@@ -240,7 +129,6 @@ document.getElementById("inventur").addEventListener("click", function () {
 
         // Set editing item ID and IP
         editingItemId = currentItem.id;
-        editingItemIP = currentItem.ip;
         // Check if not already editing an item
     });
 
@@ -264,6 +152,5 @@ document.getElementById("inventur").addEventListener("click", function () {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
-    populateEspTable();
-    sendLedRequest('on');
+    lucide.createIcons();
 });

@@ -1,9 +1,8 @@
-const selectEspDropdown = document.getElementById("item_esp_select");
 let fetchedItems = []; // Define an array to store fetched items
 let isEditingItem = false;
 let isCopyingItem = false;
 let editingItemId = null; // Track the ID of the item being edited
-let editingItemIP = null; // Track the IP of the item being edited
+
 
 
 // Async function to handle the addition or editing of an item
@@ -41,43 +40,21 @@ async function addItem(event) {
         }
     }
 
-
-    // Submit lights and tags information
-    submitLights();
     SubmitTags();
 
     // Gather item information from the form
     const name = document.getElementById("item_name").value;
     const link = document.getElementById("item_url").value || "";
     const image = document.getElementById("item_image").value.replace(window.location.href, "");
-    let position = localStorage.getItem('led_positions');
     const quantity = document.getElementById("item_quantity").value;
     const tags = localStorage.getItem('item_tags');
-    const selectedEspOption = selectEspDropdown.options[selectEspDropdown.selectedIndex];
-
-    // If LED positions are not selected, prompt the user
-    if (position === "[]") {
-        if (!isEditingItem) {
-            alert("Please select an LED to light up.");
-            return;
-        } else {
-            // If editing, retrieve the previous LED positions
-            position = localStorage.getItem('edit_led_positions');
-            position = JSON.parse(position);
-        }
-    }
-
-    // Retrieve the IP address of the selected ESP device
-    const ip = selectedEspOption.dataset.espIp;
 
     // Create the item object with gathered information
     const item = {
         name,
         link,
         image,
-        position,
         quantity,
-        ip,
         tags,
     };
 
@@ -128,71 +105,18 @@ async function addItem(event) {
 
 
 function removeLocalStorage(){
-    localStorage.removeItem('led_positions');
-    localStorage.removeItem('edit_led_positions');
     localStorage.removeItem('item_tags');
     localStorage.removeItem('edit_image_path');
 }
-function populateEspDropdown() {
-    let index = 0;
-    selectEspDropdown.innerHTML = "";
-    // Fetch ESP devices
-    fetch("/api/esp").then((response) => response.json()).then((data) => {
-        if (data.length > 0) {
-            // Devices found: Populate dropdown and select the first one
-            data.forEach((esp) => {
-                const option = document.createElement("option");
-                option.value = esp.id;
-                option.dataset.espRows = esp.rows;
-                option.dataset.espColumns = esp.cols;
-                option.dataset.espStartY = esp.start_top;
-                option.dataset.espStartX = esp.start_left;
-                option.dataset.espSerpentine = esp.serpentine_direction;
-                option.dataset.espIp = esp.esp_ip;
-                option.dataset.espName = esp.name;
-                option.textContent = esp.name + " (" + esp.esp_ip + ")";
-                selectEspDropdown.appendChild(option);
 
-            });
-
-            if (isEditingItem) {
-                index = findIndexByIP(editingItemIP);
-            }
-            selectEspDropdown.selectedIndex = index;
-
-        } else {
-            // No devices found: Disable dropdown and display message
-            selectEspDropdown.disabled = true;
-            const messageOption = document.createElement("option");
-            messageOption.textContent = "Please add an ESP device first...";
-            messageOption.disabled = true;
-            selectEspDropdown.appendChild(messageOption);
-        }
-        let rows = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-rows");
-        let columns = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-columns");
-        let startX = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-start-x");
-        let startY = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-start-y");
-        let serpentineDirection = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-serpentine");
-        drawGrid("item", rows, columns, startX, startY, serpentineDirection);
-    }).catch((error) => console.error(error));
-}
 
 document.getElementById('item-modal').addEventListener('shown.bs.modal', function () {
     let inputField = document.getElementById('item_name');
     inputField.focus();
     inputField.select();
-    populateEspDropdown();
+
 });
-document.getElementById('item_esp_select').addEventListener('change', function () {
-    let selectEspDropdown = document.getElementById('item_esp_select');
-    let rows = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-rows");
-    let columns = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-columns");
-    let startX = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-x");
-    let startY = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-y");
-    let serpentineDirection = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine");
-    clearAll();
-    drawGrid("item", rows, columns, startX, startY, serpentineDirection);
-});
+
 
 document.getElementById("save-item-button").addEventListener("click", addItem);
 function loadItems() {
@@ -208,6 +132,19 @@ function loadItems() {
 
 }
 
+function generateItemsGrid() {
+    const itemsContainer = document.getElementById('items-container-grid');
+    // Clear previous content in the container if needed
+    itemsContainer.innerHTML = '';
+    fetchedItems.forEach((item) => {
+        const col = createItem(item)
+        itemsContainer.appendChild(col);
+    });
+
+    initialiseTooltips();
+    lucide.createIcons();
+}
+
 // Function to create an HTML element representing an item
 function createItem(item) {
     // Create a new column element with Bootstrap classes
@@ -218,12 +155,6 @@ function createItem(item) {
     col.dataset.id = item.id;
     col.dataset.name = item.name;
     col.dataset.quantity = parseInt(item.quantity, 10);  // Store as numbers
-    col.dataset.ip = item.ip;
-    if (!Array.isArray(item.position)) {
-        item.position = item.position.replace('[', '').replace(']', '');
-        item.position = item.position.split(',').map(Number).filter(num => !isNaN(num));
-    }
-    col.dataset.position = item.position;
     col.dataset.tags = item.tags;
 
     // Set inner HTML for the created column
@@ -243,9 +174,7 @@ function createItem(item) {
 
             <!-- Buttons for locating, editing, and dropdown menu -->
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <button class="btn btn-outline-info locate-btn" data-bs-toggle="tooltip" title="Locate" data-item-id="${item.id}">
-                    <span class="icon-n4px"><i data-lucide="lightbulb"></i></span>
-                </button>
+               
                 <button class="btn btn-outline-primary edit-btn" data-bs-toggle="tooltip" title="Edit">
                     <span class="icon-n4px"><i data-lucide="file-edit"></i></span>
                 </button>
@@ -293,14 +222,6 @@ function createItem(item) {
         }).catch((error) => console.error(error));
     });
 
-    col.querySelector('.locate-btn').addEventListener('click', () => {
-        fetch(`/api/items/${item.id}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ action: "locate" }),
-        }).catch((error) => console.error(error));
-    });
-
     col.querySelector('.delete-btn').addEventListener('click', () => {
         const response = confirm(`Are you sure you want to delete ${item.name}?`);
         const id = item.id;
@@ -329,10 +250,7 @@ function createItem(item) {
         document.getElementById("item_url").value = item.link;
         document.getElementById("item_image").value = item.image;
         document.getElementById("item_quantity").value = item.quantity;
-        // Set LED positions for editing
-        localStorage.setItem('led_positions', JSON.stringify(item.position))
-        clickedCells = JSON.parse(localStorage.getItem('led_positions'));
-        localStorage.setItem('edit_led_positions', JSON.stringify(item.position))
+
         localStorage.setItem('edit_image_path', JSON.stringify(item.image))
         // Set item tags for editing
         if (item.tags) {
@@ -388,12 +306,8 @@ function createItem(item) {
         document.getElementById("item_url").value = item.link;
         document.getElementById("item_image").value = item.image;
         document.getElementById("item_quantity").value = item.quantity;
-
-        // Set LED positions for editing
-        localStorage.setItem('led_positions', JSON.stringify(item.position))
-        clickedCells = JSON.parse(localStorage.getItem('led_positions'));
-        localStorage.setItem('edit_led_positions', JSON.stringify(item.position))
         localStorage.setItem('edit_image_path', JSON.stringify(item.image))
+
 
         // Set item tags for editing
         if (item.tags) {
@@ -406,7 +320,6 @@ function createItem(item) {
 
         // Set editing item ID and IP
         editingItemId = item.id;
-        editingItemIP = item.ip;
     });
 
     // Return the created column element
@@ -452,30 +365,6 @@ function handleQuantityChange(item, changeValue) {
 }
 
 
-function generateItemsGrid() {
-    const itemsContainer = document.getElementById('items-container-grid');
-    // Clear previous content in the container if needed
-    itemsContainer.innerHTML = '';
-    fetchedItems.forEach((item) => {
-        const col = createItem(item)
-        itemsContainer.appendChild(col);
-    });
-
-    initialiseTooltips();
-}
-function findIndexByIP(ip) {
-    const options = Array.from(selectEspDropdown.options);
-    for (let i = 0; i < options.length; i++) {
-        const optionIp = options[i].dataset.espIp.trim().toLowerCase();
-        const optionName = options[i].dataset.espName.trim().toLowerCase();
-        if (optionIp === ip.trim().toLowerCase() || optionName === ip.trim().toLowerCase()) {
-            return i; // Return the index when either the IP or the name matches the selected option value.
-        }
-    }
-    return 0; // Return -1 if no match is found.
-}
-
-
 
 function initialiseTooltips() {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -492,7 +381,6 @@ function resetModal() {
     document.getElementById("item_image_upload").value = "";
     document.getElementById("item_tags").value = "";
     removeLocalStorage();
-    clearAll();
     const new_item_modal = document.querySelector('#item-modal');
     const modal = bootstrap.Modal.getInstance(new_item_modal);
     modal.hide();
@@ -513,9 +401,6 @@ function sortItems(sortMethod) {
         if (sortMethod === 'quantity' || sortMethod === 'id') {
             // Convert values to numbers for numeric comparison
             return parseInt(itemA, 10) - parseInt(itemB, 10);
-        }
-        if (sortMethod === 'position') {
-            return itemA[0] - itemB[0];
         }
         else {
             // For other fields, use string comparison
