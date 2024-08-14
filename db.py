@@ -9,6 +9,9 @@ COMBINED_DATABASE = 'data/combined_data.db'
 
 
 def create_combined_db():
+    # Ensure the 'data' directory exists
+    if not os.path.exists(os.path.dirname(COMBINED_DATABASE)):
+        os.makedirs(os.path.dirname(COMBINED_DATABASE))
     # Connect to the combined database
     conn_combined = sqlite3.connect(COMBINED_DATABASE)
     conn_combined.row_factory = sqlite3.Row
