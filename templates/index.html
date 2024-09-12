@@ -114,7 +114,7 @@
                             <i data-lucide="lightbulb-off" class="me-2"></i>
                         </span>
                         <span id="off_btn_label">Off</span>
-                    </button>    
+                    </button>
                     <button id="party-button" class="btn btn-rainbow pe-3">
                         <span class="icon-n4px">
                             <i data-lucide="party-popper" class="me-2"></i>
@@ -496,13 +496,21 @@
                         </div>
                         <div class="col-4 ps-0">
                             <div class="form-floating mb-3">
-                                <select class="form-select" id="esp_serpentine">
-                                    <option id="horizontal_label" selected data-serpentine="Horizontal">Horizontal</option>
-                                    <option id="vertical_label"  data-serpentine="Vertical">Vertical</option>
+                                <select class="form-select" id="esp_orientation">
+                                    <option id="horizontal_label" selected data-orientation="Horizontal">Horizontal</option>
+                                    <option id="vertical_label"  data-orientation="Vertical">Vertical</option>
                                 </select>
-                                <label id="serpentine_dir_label" for="esp_serpentine">Serpentine Direction</label>
+                                <label id="orientation_label" for="esp_orientation">Orientation</label>
                             </div>
                         </div>
+
+                    </div>
+                    <div class="form-floating mb-3">
+                        <select class="form-select" id="esp_serpentine">
+                            <option id="serpentine_true_label" selected data-serpentine="1">Serpentine</option>
+                            <option id="serpentine_false_label"  data-serpentine="0">No serpentine</option>
+                        </select>
+                        <label id="esp_serpentine_label" for="esp_serpentine">Serpentine</label>
                     </div>
                     <div id="esp-canvas-container" class="col-10 mx-auto">
                         <canvas id="esp-responsive-canvas"></canvas>
