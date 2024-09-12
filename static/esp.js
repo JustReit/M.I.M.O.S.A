@@ -1,3 +1,4 @@
+
 // Function to populate the ESP table with data fetched from the server
 function populateEspTable() {
     const espTable = document.getElementById("esp_table");
@@ -44,7 +45,8 @@ function populateEspTable() {
                 editButton.dataset.bsEspColumns = esp.cols;
                 editButton.dataset.bsEspStartY = esp.start_top;
                 editButton.dataset.bsEspStartX = esp.start_left;
-                editButton.dataset.bsEspSerpentinedirection = esp.serpentine_direction;
+                editButton.dataset.bsEspOrientation = esp.orientation;
+                editButton.dataset.bsEspSerpentine = esp.serpentine;
                 editButton.dataset.bsToggle = "modal";
                 editButton.innerHTML = '<i data-lucide="file-edit" class="text-primary"></i>';
 
@@ -92,9 +94,9 @@ document.getElementById("save-esp-button").addEventListener('click', () => {
 
     const startTop = document.querySelector("#esp_starty option:checked").getAttribute("data-starty");
     const startLeft = document.querySelector("#esp_startx option:checked").getAttribute("data-startx");
-    const serpentineDirection = document.querySelector("#esp_serpentine option:checked").getAttribute("data-serpentine");
+    const orientation = document.querySelector("#esp_orientation option:checked").getAttribute("data-orientation");
+    const serpentine = document.querySelector("#esp_serpentine option:checked").getAttribute("data-serpentine");
 
-    console.log(startTop, startLeft, serpentineDirection);
 
     const emptyFields = [];
     const isValidIPAddress = (ip) => {
@@ -115,7 +117,8 @@ document.getElementById("save-esp-button").addEventListener('click', () => {
         cols,
         startTop,
         startLeft,
-        serpentineDirection
+        orientation,
+        serpentine
     };
 
     const processESPItem = () => {
@@ -163,7 +166,8 @@ document.getElementById("save-esp-button").addEventListener('click', () => {
             document.getElementById("esp_columns").value = espItem.cols;
             document.getElementById("esp_starty").value = espItem.startTop;
             document.getElementById("esp_startx").value = espItem.startLeft;
-            document.getElementById("esp_serpentine").value = espItem.serpentineDirection;
+            document.getElementById("esp_orientation").value = espItem.orientation;
+            document.getElementById("esp_serpentine").value = espItem.serpentine;
             espId = "";
         }, { once: true });
     } else {
@@ -194,8 +198,9 @@ document.getElementById('esp-modal').addEventListener('show.bs.modal', function 
         const espColumns = button.getAttribute('data-bs-esp-columns');
         const espStartTop = button.getAttribute('data-bs-esp-start-y');
         const espStartLeft = button.getAttribute('data-bs-esp-start-x');
-        const espSerpentineDirection = button.getAttribute('data-bs-esp-serpentinedirection');
-        console.log(espSerpentineDirection, espStartTop, espStartLeft);
+        const esporientation = button.getAttribute('data-bs-esp-orientation');
+        const espSerpentine = button.getAttribute('data-bs-esp-serpentine');
+        console.log(espSerpentine, espStartTop, espStartLeft);
         // Set device name and IP address in the modal
         document.getElementById('esp_name').value = espName;
         document.getElementById('esp_ip').value = ipAddress;
@@ -203,7 +208,8 @@ document.getElementById('esp-modal').addEventListener('show.bs.modal', function 
         document.getElementById('esp_columns').value = espColumns;
         setSelectedIndexByValue('esp_starty', espStartTop, 'data-starty');
         setSelectedIndexByValue('esp_startx', espStartLeft, 'data-startx');
-        setSelectedIndexByValue('esp_serpentine', espSerpentineDirection, 'data-serpentine');
+        setSelectedIndexByValue('esp_orientation', esporientation, 'data-orientation');
+        setSelectedIndexByValue('esp_serpentine', espSerpentine, 'data-serpentine');
         document.getElementById('save-esp-button').dataset.bsEspId = button.getAttribute('data-bs-esp-id');
     }
 });
@@ -258,6 +264,9 @@ document.getElementById('esp_starty').addEventListener('change', function () {
 document.getElementById('esp_serpentine').addEventListener('change', function () {
     drawGrid("esp");
 });
+document.getElementById('esp_orientation').addEventListener('change', function () {
+    drawGrid("esp");
+});
 document.getElementById('esp-modal').addEventListener('hidden.bs.modal', function () {
 
     document.getElementById('esp-modal-label').innerHTML = "Add WLED"; // Set the modal label back to its initial state
@@ -271,7 +280,8 @@ document.getElementById('esp-modal').addEventListener('hidden.bs.modal', functio
     document.getElementById('esp_columns').value = 4;
     document.getElementById('esp_starty').selectedIndex = 1;
     document.getElementById('esp_startx').selectedIndex = 1;
-    document.getElementById('esp_serpentine').selectedIndex = 1;
+    document.getElementById('esp_orientation').selectedIndex = 1;
+    document.getElementById('esp_serpentine').selectedIndex = 0;
 
     // Clear any existing data attributes
     document.getElementById('save-esp-button').removeAttribute('data-bs-esp-id');
@@ -281,7 +291,8 @@ document.getElementById('esp-modal').addEventListener('hidden.bs.modal', functio
     document.getElementById('save-esp-button').removeAttribute('data-bs-esp-columns');
     document.getElementById('save-esp-button').removeAttribute('data-bs-esp-start-y');
     document.getElementById('save-esp-button').removeAttribute('data-bs-esp-start-x');
-    document.getElementById('save-esp-button').removeAttribute('data-bs-esp-serpentinedirection');
+    document.getElementById('save-esp-button').removeAttribute('data-bs-esp-orientation');
+    document.getElementById('save-esp-button').removeAttribute('data-bs-esp-serpentine');
 });
 
 

@@ -171,6 +171,7 @@ def handle_esp(id):
 
     elif request.method == 'PUT':
         esp_data = request.get_json()
+
         db.update_esp_settings(id, esp_data)
         return jsonify({'success': True})
 
@@ -348,25 +349,35 @@ def position_optimization(positions, esp):
     columns = esp['cols']
     start_y = esp['start_top'].lower()
     start_x = esp['start_left'].lower()
-    serpentine_direction = esp['serpentine_direction'].lower()
+    orientation = esp['orientation'].lower()
+    serpentine = esp['serpentine'].lower()
 
+    # Ensure '1' values are interpreted as specific directions
     if start_x == "1":
         start_x = "right"
-
-    if serpentine_direction == "1":
-        serpentine_direction = "vertical"
-
+    if start_y == "1":
+        start_y = "bottom"
+    if orientation == "1":
+        orientation = "vertical"
+    # Adjust the positions for serpentine
     for pos in positions:
         i = pos - 1
 
-        if serpentine_direction == "horizontal":
-            # Handle horizontal serpentine direction
+        if orientation == "horizontal":
+            # Calculate row and column based on the index for horizontal orientation
             row = i // columns
-            column = i % columns if row % 2 == 0 else columns - 1 - (i % columns)
-        else:  # serpentine_direction == "vertical"
-            # Handle vertical serpentine direction
+            if serpentine == "1" and row % 2 == 1:
+                # Reverse the column for every other row (serpentine effect)
+                column = columns - 1 - (i % columns)
+            else:
+                column = i % columns
+        else:  # Vertical orientation
             column = i // rows
-            row = i % rows if column % 2 == 0 else rows - 1 - (i % rows)
+            if serpentine == "1" and column % 2 == 1:
+                # Reverse the row for every other column (serpentine effect)
+                row = rows - 1 - (i % rows)
+            else:
+                row = i % rows
 
         # Adjust for starting positions
         if start_x == "right":
@@ -376,10 +387,12 @@ def position_optimization(positions, esp):
 
         # Calculate the LED number
         led_number = row * columns + column
-        # Append the last segment
+        # Append the calculated segment
         segments.append(led_number)
+    print(segments)
 
     return segments
+
 
 
 @app.route('/test_lights', methods=['POST'])

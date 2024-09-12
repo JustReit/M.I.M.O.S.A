@@ -2,7 +2,7 @@ let clickedCells = [];
 let selectedCells = []
 let isEventListened = false;
 let canvas;
-function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
+function drawGrid(mode, rows, columns, startX, startY, orientation, serpentine) {
     // Convert string values to lowercase
     if (typeof startX === 'string') {
         startX = startX.toLowerCase();
@@ -10,8 +10,11 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
     if (typeof startY === 'string') {
         startY = startY.toLowerCase();
     }
-    if (typeof serpentineDirection === 'string') {
-        serpentineDirection = serpentineDirection.toLowerCase();
+    if (typeof orientation === 'string') {
+        orientation = orientation.toLowerCase();
+    }
+    if (typeof serpentine === 'string') {
+        serpentine = serpentine.toLowerCase();
     }
 
     const canvasContainer = document.getElementById(mode + '-canvas-container');
@@ -30,21 +33,24 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
         columns = parseInt(document.getElementById('esp_columns').value);
         startX = document.getElementById('esp_startx').options[document.getElementById('esp_startx').selectedIndex].getAttribute("data-startx").toLowerCase();
         startY = document.getElementById('esp_starty').options[document.getElementById('esp_starty').selectedIndex].getAttribute("data-starty").toLowerCase();
-        serpentineDirection = document.getElementById('esp_serpentine').options[document.getElementById('esp_serpentine').selectedIndex].getAttribute("data-serpentine").toLowerCase();
+        orientation = document.getElementById('esp_orientation').options[document.getElementById('esp_orientation').selectedIndex].getAttribute("data-orientation").toLowerCase();
+        serpentine = document.getElementById('esp_serpentine').options[document.getElementById('esp_serpentine').selectedIndex].getAttribute("data-serpentine").toLowerCase();
 
     }else {
         if (startX == 1) {
             startX = "right";
         }
 
-        if (serpentineDirection == 1) {
-            serpentineDirection =  "vertical";
+        if (orientation == 1) {
+            orientation =  "vertical";
         }
     }
+    // Checking for serpentine === "0"
+    let serpentineOff = serpentine === "0";
     columns = parseInt(columns);
     rows = parseInt(rows);
 
-    //console.log("startX: " + startX + ", " + "startY: " + startY + ", " + "serpentineDirection: " + serpentineDirection)
+
     canvas = document.getElementById(mode + '-responsive-canvas');
     let ctx = canvas.getContext('2d');
     let lineWidth = 2;
@@ -58,7 +64,7 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
 
     }
     canvas.height = (boxSize * rows) + lineWidth;
-   
+
     let lineColour = "#0d6efd";
     let gridColour = "#6c757d";
     let offset = 0;
@@ -87,121 +93,196 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
     }
     // Draw line
     ctx.strokeStyle = lineColour;
-    if (serpentineDirection === "horizontal") {
-        // Draw horizontal lines
-        for (let i = 0; i <= rows - 1; i++) {
-            ctx.beginPath();
-            const y = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
-            ctx.moveTo(boxSize / 2, y);
-            ctx.lineTo(canvas.width - (boxSize / 2), y);
-            ctx.stroke();
-        }
-        // Draw vertical lines
-        if (columns > 1) {
-            ctx.setLineDash([boxSize]);
-        }
-        if (startY === "top") {
-            startIndicatorY = 0;
-            endIndicatorY = rows - 1;
-        } else if (startY === "bottom") {
-            startIndicatorY = rows - 1;
-            endIndicatorY = 0;
-        }
-        if (startX === "left") {
-            offset = startY === "top" ? boxSize : (boxSize * (rows % 2)) + boxSize;
-            startIndicatorX = 0;
-            endIndicatorX = rows % 2 ? columns - 1 : 0;
-        } else if (startX === "right") {
-            offset = startY === "top" ? 0 : boxSize * (rows % 2);
-            startIndicatorX = columns - 1;
-            endIndicatorX = rows % 2 ? 0 : columns - 1;
-        }
-        for (let i = 0; i <= columns - 1; i++) {
-            if (i === 0) {
-                ctx.lineDashOffset = offset;
-            } else if (i === columns - 1) {
-                ctx.lineDashOffset = offset + boxSize;
+    if(!serpentineOff) {
+        if (orientation === "horizontal") {
+            // Draw horizontal lines
+            for (let i = 0; i <= rows - 1; i++) {
+                ctx.beginPath();
+                const y = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
+                ctx.moveTo(boxSize / 2, y);
+                ctx.lineTo(canvas.width - (boxSize / 2), y);
+                ctx.stroke();
             }
-            if (i === 0 || i === columns - 1) {
+            // Draw vertical lines
+            if (columns > 1) {
+                ctx.setLineDash([boxSize]);
+            }
+            if (startY === "top") {
+                startIndicatorY = 0;
+                endIndicatorY = rows - 1;
+            } else if (startY === "bottom") {
+                startIndicatorY = rows - 1;
+                endIndicatorY = 0;
+            }
+            if (startX === "left") {
+                offset = startY === "top" ? boxSize : (boxSize * (rows % 2)) + boxSize;
+                startIndicatorX = 0;
+                endIndicatorX = rows % 2 ? columns - 1 : 0;
+            } else if (startX === "right") {
+                offset = startY === "top" ? 0 : boxSize * (rows % 2);
+                startIndicatorX = columns - 1;
+                endIndicatorX = rows % 2 ? 0 : columns - 1;
+            }
+            for (let i = 0; i <= columns - 1; i++) {
+                if (i === 0) {
+                    ctx.lineDashOffset = offset;
+                } else if (i === columns - 1) {
+                    ctx.lineDashOffset = offset + boxSize;
+                }
+                if (i === 0 || i === columns - 1) {
+                    ctx.beginPath();
+                    let x = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
+                    ctx.moveTo(x, boxSize / 2);
+                    ctx.lineTo(x, canvas.height - (boxSize / 2));
+                    ctx.stroke();
+                }
+            }
+        } else {
+            // Draw vertical lines
+            for (let i = 0; i <= columns - 1; i++) {
                 ctx.beginPath();
                 let x = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
                 ctx.moveTo(x, boxSize / 2);
                 ctx.lineTo(x, canvas.height - (boxSize / 2));
                 ctx.stroke();
             }
-        }
-    } else {
-        // Draw vertical lines
-        for (let i = 0; i <= columns - 1; i++) {
-            ctx.beginPath();
-            let x = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
-            ctx.moveTo(x, boxSize / 2);
-            ctx.lineTo(x, canvas.height - (boxSize / 2));
-            ctx.stroke();
-        }
-        // Draw horizontal lines
-        if (rows > 1) {
-            ctx.setLineDash([boxSize]);
-        }
-        if (startX === "left" && startY === "top") {
-            offset = boxSize;
-            startIndicatorX = 0;
-            startIndicatorY = 0;
-            endIndicatorX = columns - 1;
-            if (columns % 2) {
-                endIndicatorY = rows - 1;
-            } else {
-                endIndicatorY = 0;
+            // Draw horizontal lines
+            if (rows > 1) {
+                ctx.setLineDash([boxSize]);
             }
-        } else if (startX === "right" && startY === "top") {
-            offset = (boxSize * (columns % 2)) + boxSize;
-            startIndicatorX = columns - 1;
-            startIndicatorY = 0;
-            endIndicatorX = 0;
-            if (columns % 2) {
-                endIndicatorY = rows - 1;
-            } else {
-                endIndicatorY = 0;
+            if (startX === "left" && startY === "top") {
+                offset = boxSize;
+                startIndicatorX = 0;
+                startIndicatorY = 0;
+                endIndicatorX = columns - 1;
+                if (columns % 2) {
+                    endIndicatorY = rows - 1;
+                } else {
+                    endIndicatorY = 0;
+                }
+            } else if (startX === "right" && startY === "top") {
+                offset = (boxSize * (columns % 2)) + boxSize;
+                startIndicatorX = columns - 1;
+                startIndicatorY = 0;
+                endIndicatorX = 0;
+                if (columns % 2) {
+                    endIndicatorY = rows - 1;
+                } else {
+                    endIndicatorY = 0;
+                }
+            }
+            if (startX === "left" && startY === "bottom") {
+                offset = 0;
+                startIndicatorY = rows - 1;
+                startIndicatorX = 0;
+                endIndicatorX = columns - 1;
+                if (columns % 2) {
+                    endIndicatorY = 0;
+                } else {
+                    endIndicatorY = rows - 1;
+                }
+            } else if (startX === "right" && startY === "bottom") {
+                offset = boxSize * (columns % 2);
+                startIndicatorY = rows - 1;
+                startIndicatorX = columns - 1;
+                endIndicatorX = 0;
+                if (columns % 2) {
+                    endIndicatorY = 0;
+                } else {
+                    endIndicatorY = rows - 1;
+                }
+            }
+            for (let i = 0; i <= rows - 1; i++) {
+                if (i === 0) {
+                    ctx.lineDashOffset = offset;
+                } else if (i === rows - 1) {
+                    ctx.lineDashOffset = offset + boxSize;
+                }
+                if (i === 0 || i === rows - 1) {
+                    ctx.beginPath();
+                    let y = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
+                    ctx.moveTo(boxSize / 2, y);
+                    ctx.lineTo(canvas.width - (boxSize / 2), y);
+                    ctx.stroke();
+                }
             }
         }
-        if (startX === "left" && startY === "bottom") {
-            offset = 0;
-            startIndicatorY = rows - 1;
-            startIndicatorX = 0;
-            endIndicatorX = columns - 1;
-            if (columns % 2) {
-                endIndicatorY = 0;
-            } else {
-                endIndicatorY = rows - 1;
-            }
-        } else if (startX === "right" && startY === "bottom") {
-            offset = boxSize * (columns % 2);
-            startIndicatorY = rows - 1;
-            startIndicatorX = columns - 1;
-            endIndicatorX = 0;
-            if (columns % 2) {
-                endIndicatorY = 0;
-            } else {
-                endIndicatorY = rows - 1;
-            }
-        }
-        for (let i = 0; i <= rows - 1; i++) {
-            if (i === 0) {
-                ctx.lineDashOffset = offset;
-            } else if (i === rows - 1) {
-                ctx.lineDashOffset = offset + boxSize;
-            }
-            if (i === 0 || i === rows - 1) {
+    }
+    else {
+        if (orientation === "horizontal") {
+            // Draw horizontal lines
+            for (let i = 0; i <= rows - 1; i++) {
                 ctx.beginPath();
-                let y = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
+                const y = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
                 ctx.moveTo(boxSize / 2, y);
                 ctx.lineTo(canvas.width - (boxSize / 2), y);
                 ctx.stroke();
             }
+            // Draw vertical lines
+            if (columns > 1) {
+                ctx.setLineDash([boxSize]);
+            }
+            if (startY === "bottom") {
+                startIndicatorY = 0;
+                endIndicatorY = rows - 1;
+            } else if (startY === "top") {
+                startIndicatorY = rows - 1;
+                endIndicatorY = 0;
+            }
+            if (startX === "left") {
+                startIndicatorX = columns - 1;
+                endIndicatorX =  0;
+            } else if (startX === "right") {
+                startIndicatorX = 0;
+                endIndicatorX =  columns - 1;
+            }
+        } else {
+            // Draw vertical lines
+            for (let i = 0; i <= columns - 1; i++) {
+                ctx.beginPath();
+                let x = (i * boxSize + halfLineWidth) + (boxSize / 2); // Add half of the line width
+                ctx.moveTo(x, boxSize / 2);
+                ctx.lineTo(x, canvas.height - (boxSize / 2));
+                ctx.stroke();
+            }
+            // Draw horizontal lines
+            if (rows > 1) {
+                ctx.setLineDash([boxSize]);
+            }
+            if (startX === "left" && startY === "top") {
+                startIndicatorX = 0;
+                startIndicatorY = 0;
+                endIndicatorX = columns - 1;
+                endIndicatorY = rows - 1;
+
+            } else if (startX === "right" && startY === "top") {
+                startIndicatorX = columns - 1;
+                startIndicatorY = 0;
+                endIndicatorX = 0;
+                endIndicatorY = rows - 1;
+
+
+            }
+            if (startX === "left" && startY === "bottom") {
+
+                startIndicatorY = rows - 1;
+                startIndicatorX = 0;
+                endIndicatorX = columns - 1;
+                endIndicatorY = 0;
+
+            } else if (startX === "right" && startY === "bottom") {
+                startIndicatorY = rows - 1;
+                startIndicatorX = columns - 1;
+
+                endIndicatorX = 0;
+                endIndicatorY = 0;
+
+            }
         }
     }
 
-    // Draw circles in the middle of each grid square
+
+        // Draw circles in the middle of each grid square
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
             let circleCenterX = j * boxSize + boxSize / 2 + halfLineWidth;
@@ -222,7 +303,7 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
             ctx.font = `${boxSize / 5}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            const cellNumber = calculateLedNumber(i, j, startX, startY, serpentineDirection, rows, columns);
+            const cellNumber = calculateLedNumber(i, j, startX, startY, orientation, rows, columns, serpentine);
             ctx.fillText(cellNumber.toString(), circleCenterX + boxSize/5, circleCenterY - boxSize/5);
         }
     }
@@ -248,10 +329,9 @@ function drawGrid(mode, rows, columns, startX, startY, serpentineDirection) {
             });
 
             isEventListened = true;
+
         }
-        if (isEditingItem || isCopyingItem) {
-            redrawGrid(rows, columns, "item", startX, startY, serpentineDirection);
-        }
+        redrawGrid(rows, columns, "item", startX, startY,orientation, serpentine);
     }
 
 }
@@ -261,14 +341,15 @@ function handleCellClick(event, mode) {
     const columns = parseInt(selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-columns"));
     let startX = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-x").toLowerCase();
     const startY = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-y").toLowerCase();
-    let serpentineDirection = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine").toLowerCase();
+    let orientation = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-orientation").toLowerCase();
+    let serpentine = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine").toLowerCase();
 
     if (startX == 1) {
         startX = "right";
     }
     //console.log("Processed StartX:", startX);  // Debugging processed startX
-    if (serpentineDirection == 1) {
-        serpentineDirection =  "vertical";
+    if (orientation == 1) {
+        orientation =  "vertical";
     }
 
     const canvas = document.getElementById(mode + '-responsive-canvas');
@@ -295,7 +376,7 @@ function handleCellClick(event, mode) {
 
     //console.log("ClickedRow:", clickedRow, "ClickedColumn:", clickedColumn);  // Debugging clicked row and column
 
-    const ledNumber = calculateLedNumber(clickedRow, clickedColumn, startX, startY, serpentineDirection, rows, columns);
+    const ledNumber = calculateLedNumber(clickedRow, clickedColumn, startX, startY, orientation, rows, columns, serpentine);
 
     // Find if the clicked cell is already in the clickedCells array
     let cellIndex = clickedCells.indexOf(ledNumber);
@@ -307,33 +388,37 @@ function handleCellClick(event, mode) {
         clickedCells.splice(cellIndex, 1);
     }
 
-    redrawGrid(rows, columns, "item", startX, startY, serpentineDirection);
+    redrawGrid(rows, columns, "item", startX, startY, orientation, serpentine);
 }
 
 
-function calculateLedNumber(row, column, startX, startY, serpentineDirection, rows, columns) {
+function calculateLedNumber(row, column, startX, startY, orientation, rows, columns, serpentine) {
     if (startX === "right") {
-        column = columns - column; // Ensure accurate column reversal
+        column = columns - column - 1; // Ensure accurate column reversal
     }
-        if (startY === "bottom") {
-            row = rows - row;
-        }
+    if (startY === "bottom") {
+        row = rows - row - 1;
+    }
 
-        if (serpentineDirection === "horizontal") {
-            row = startY !== "bottom" ? row + 1 : row;
-            column = startX !== "left" ? column - 1 : column;
+    if (orientation === "horizontal") {
+        if (serpentine === "1") {
             const isEvenRow = row % 2 === 0;
-            return isEvenRow ? row * columns - (columns - (columns - column)) : row * columns - (columns - column) + 1;
+            return isEvenRow ? row * columns + column + 1 : (row + 1) * columns - column;
         } else {
-            column = startX !== "right" ? column + 1 : column;
-            row = startY !== "top" ? row - 1 : row;
-
-            const isEvenColumn = column % 2 === 0;
-            return isEvenColumn ? column * rows - (rows - (rows - row)) : column * rows - (rows - row) + 1;
+            return row * columns + column + 1;
         }
+    } else {
+        if (serpentine === "1") {
+            const isEvenColumn = column % 2 === 0;
+            return isEvenColumn ? column * rows + row + 1 : (column + 1) * rows - row;
+        } else {
+            return column * rows + row + 1;
+        }
+    }
 }
 
-function redrawGrid(rows, columns, mode, startX, startY, serpentineDirection) {
+
+function redrawGrid(rows, columns, mode, startX, startY, orientation, serpentine) {
      canvas = document.getElementById(mode + '-responsive-canvas');
 
     let ctx = canvas.getContext('2d');
@@ -349,7 +434,7 @@ function redrawGrid(rows, columns, mode, startX, startY, serpentineDirection) {
     // Loop through rows and columns of the grid
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
-            let cellNumber = calculateLedNumber(i, j, startX, startY, serpentineDirection, rows, columns);
+            let cellNumber = calculateLedNumber(i, j, startX, startY, orientation, rows, columns, serpentine);
             let isClicked = clickedCells.includes(cellNumber);
             // Check if the current cell is the start or end point
             let isStartPoint = cellNumber === 1
@@ -378,7 +463,6 @@ function redrawGrid(rows, columns, mode, startX, startY, serpentineDirection) {
         }
     }
 }
-
 
 
 function TestLights() {
@@ -417,14 +501,15 @@ function clearAll() {
     const columns = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-columns");
     let startX = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-x").toLowerCase();
     const startY = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-y").toLowerCase();
-    let serpentineDirection = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine").toLowerCase();
+    let orientation = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-orientation").toLowerCase();
+    let serpentine = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine").toLowerCase();
     if (startX == 1) {
         startX = "right";
     }
-    if (serpentineDirection == 1) {
-        serpentineDirection =  "vertical";
+    if (orientation == 1) {
+        orientation =  "vertical";
     }
-    redrawGrid(parseInt(rows), parseInt(columns), "item", startX, startY, serpentineDirection);
+    redrawGrid(parseInt(rows), parseInt(columns), "item", startX, startY, orientation, serpentine);
 }
 
 function submitLights() {
@@ -442,32 +527,6 @@ document.getElementById('test_led_button').addEventListener('click',TestLights);
 document.getElementById('clear_led_button').addEventListener('click',clearAll);
 
 
-function convertLedNumber(ledNumber, startX, startY, serpentineDirection, rows, columns) {
-    let row, column;
 
-    // Convert LED number to zero-based index
-    const index = ledNumber - 1;
-
-    if (serpentineDirection === "horizontal") {
-        // Handle horizontal serpentine direction
-        row = Math.floor(index / columns);
-        column = (row % 2 === 0) ? (index % columns) : (columns - 1 - (index % columns));
-    } else { // serpentineDirection === "vertical"
-        // Handle vertical serpentine direction
-        column = Math.floor(index / rows);
-        row = (column % 2 === 0) ? (index % rows) : (rows - 1 - (index % rows));
-    }
-
-    // Adjust for starting positions
-    if (startX === "right") {
-        column = columns - 1 - column;
-    }
-    if (startY === "bottom") {
-        row = rows - 1 - row;
-    }
-    ledNumber = row * columns + column;
-
-    return  ledNumber;
-}
 
 

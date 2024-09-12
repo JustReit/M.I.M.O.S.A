@@ -40,7 +40,8 @@ def create_combined_db():
                 cols INTEGER,
                 start_top TEXT,
                 start_left TEXT,
-                serpentine_direction TEXT
+                orientation TEXT,
+                serpentine TEXT
             )
         ''')
 
@@ -157,7 +158,7 @@ def delete_item(id):
 
 # Function to write ESP settings to the database
 def write_esp_settings(esp_settings):
-    required_fields = ['name', 'esp_ip', 'rows', 'cols', 'startTop', 'startLeft', 'serpentineDirection']
+    required_fields = ['name', 'esp_ip', 'rows', 'cols', 'startTop', 'startLeft','orientation', 'serpentine']
     if not all(field in esp_settings for field in required_fields):
         print("Missing required fields in esp_settings")
         return None
@@ -166,7 +167,7 @@ def write_esp_settings(esp_settings):
     try:
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO esp (name, esp_ip, rows, cols, start_top, start_left, serpentine_direction) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO esp (name, esp_ip, rows, cols, start_top, start_left,orientation, serpentine ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 esp_settings['name'],
                 esp_settings['esp_ip'],
@@ -174,7 +175,8 @@ def write_esp_settings(esp_settings):
                 esp_settings['cols'],
                 esp_settings['startTop'],
                 esp_settings['startLeft'],
-                esp_settings['serpentineDirection']
+                esp_settings['orientation'],
+                esp_settings['serpentine']
             ])
         lastId = cursor.lastrowid
         conn.commit()
@@ -193,7 +195,7 @@ def update_esp_settings(id, esp_settings):
     conn = create_combined_db()
     try:
         conn.execute(
-            'UPDATE esp SET name = ?, esp_ip = ?, rows = ?, cols = ?, start_top = ?, start_left = ?, serpentine_direction = ? WHERE id = ?',
+            'UPDATE esp SET name = ?, esp_ip = ?, rows = ?, cols = ?, start_top = ?, start_left = ?,orientation = ?, serpentine = ? WHERE id = ?',
             [
                 esp_settings['name'],
                 esp_settings['esp_ip'],
@@ -201,7 +203,8 @@ def update_esp_settings(id, esp_settings):
                 esp_settings['cols'],
                 esp_settings['startTop'],
                 esp_settings['startLeft'],
-                esp_settings['serpentineDirection'],
+                esp_settings['orientation'],
+                esp_settings['serpentine'],
                 id
             ])
         conn.commit()
@@ -426,7 +429,7 @@ def migrate_esp_settings():
         conn_combined.execute(
             'INSERT INTO esp (name, esp_ip, rows, cols, start_top, start_left, serpentine_direction) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [esp_settings['name'], esp_settings['esp_ip'], esp_settings['rows'], esp_settings['cols'],
-             esp_settings['start_top'], esp_settings['start_left'], esp_settings['serpentine_direction']]
+             esp_settings['start_top'], esp_settings['start_left'], esp_settings['serpentine']]
         )
 
     conn_combined.commit()

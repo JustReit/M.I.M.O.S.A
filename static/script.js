@@ -5,7 +5,6 @@ let isCopyingItem = false;
 let editingItemId = null; // Track the ID of the item being edited
 let editingItemIP = null; // Track the IP of the item being edited
 
-
 // Async function to handle the addition or editing of an item
 async function addItem(event) {
     event.preventDefault();
@@ -126,7 +125,8 @@ function populateEspDropdown() {
                 option.dataset.espColumns = esp.cols;
                 option.dataset.espStartY = esp.start_top;
                 option.dataset.espStartX = esp.start_left;
-                option.dataset.espSerpentine = esp.serpentine_direction;
+                option.dataset.espOrientation = esp.orientation;
+                option.dataset.espSerpentine = esp.serpentine;
                 option.dataset.espIp = esp.esp_ip;
                 option.dataset.espName = esp.name;
                 option.textContent = esp.name + " (" + esp.esp_ip + ")";
@@ -151,8 +151,9 @@ function populateEspDropdown() {
         let columns = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-columns");
         let startX = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-start-x");
         let startY = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-start-y");
-        let serpentineDirection = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-serpentine");
-        drawGrid("item", rows, columns, startX, startY, serpentineDirection);
+        let orientation = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-orientation");
+        let serpentine = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-serpentine");
+        drawGrid("item", rows, columns, startX, startY,orientation, serpentine);
     }).catch((error) => console.error(error));
 }
 
@@ -168,9 +169,10 @@ document.getElementById('item_esp_select').addEventListener('change', function (
     let columns = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-columns");
     let startX = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-x");
     let startY = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-start-y");
-    let serpentineDirection = selectEspDropdown.options[selectEspDropdown.selectedIndex].getAttribute("data-esp-serpentine");
+    let orientation = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-orientation");
+    let serpentine = document.getElementById('item_esp_select').options[index].getAttribute("data-esp-serpentine");
     clearAll();
-    drawGrid("item", rows, columns, startX, startY, serpentineDirection);
+    drawGrid("item", rows, columns, startX, startY,orientation, serpentine);
 });
 
 document.getElementById("save-item-button").addEventListener("click", addItem);

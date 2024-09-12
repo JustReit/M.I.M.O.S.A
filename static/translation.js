@@ -1,4 +1,4 @@
-        // Fetch available languages from the server
+// Fetch available languages from the server
         function loadAvailableLanguages() {
             fetch('/api/translations')
                 .then(response => response.json())
@@ -124,7 +124,10 @@
                     document.getElementById('start_top_label').textContent = translation.start_top_label;
                     document.getElementById('horizontal_label').textContent = translation.horizontal_label;
                     document.getElementById('vertical_label').textContent = translation.vertical_label;
-                    document.getElementById('serpentine_dir_label').textContent = translation.serpentine_dir_label;
+                    document.getElementById('orientation_label').textContent = translation.serpentine_dir_label;
+                    document.getElementById('serpentine_true_label').textContent = translation.serpentine_true_label;
+                    document.getElementById('serpentine_false_label').textContent = translation.serpentine_false_label;
+                    document.getElementById('esp_serpentine_label').textContent = translation.esp_serpentine_label;
                     document.getElementById('esp-modal-label').textContent = translation.add_esp_label;
                     document.getElementById('esp_name_text').textContent = translation.esp_name_text;
                     document.getElementById('esp_ip_text').textContent = translation.esp_ip_text;
