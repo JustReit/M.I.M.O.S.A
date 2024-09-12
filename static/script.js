@@ -592,9 +592,6 @@ const handleEmptyFields = (formType) => {
         if (itemName.trim() === '') {
             emptyFields.push('Item Name');
         }
-        if (itemUrl.trim() === '') {
-            emptyFields.push('Item URL');
-        }
         if (itemQuantity.trim() === '') {
             emptyFields.push('Item Quantity');
         }
